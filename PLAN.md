@@ -55,7 +55,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 ### Phase 1: Logging
 
 - [x] Data types: define app switch and time of day
-- [ ] Cleaner: drop accidental switches and duplicates
+- [x] Cleaner: drop accidental switches and duplicates
 - [ ] Database: save switches, count what follows what; overnight gaps don't count
 - [ ] Monitor: record real switches; run daily from here on
 
