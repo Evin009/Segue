@@ -50,7 +50,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 ### Phase 0: Setup
 
 - [x] Code package + CI: project skeleton tests itself on every push
-- [ ] Menu bar app: empty app with icon and Quit (you click through Xcode)
+- [x] Menu bar app: empty app with icon and Quit (you click through Xcode)
 
 ### Phase 1: Logging
 
