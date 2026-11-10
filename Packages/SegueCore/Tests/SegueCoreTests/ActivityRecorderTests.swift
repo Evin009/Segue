@@ -123,3 +123,15 @@ private func makeRecorder() throws -> (ActivityRecorder, EventStore) {
     #expect(throws: (any Error).self) { try recorder.pause(at: 10) }
     #expect(recorder.isPaused)
 }
+
+@Test func savedCountGrowsOnlyWhenEventsAreSaved() throws {
+    var (recorder, _) = try makeRecorder()
+    #expect(recorder.savedCount == 0)
+    try recorder.appActivated("A", at: 0)
+    try recorder.appActivated("B", at: 10)
+    #expect(recorder.savedCount == 0)  // nothing finished yet
+    try recorder.pause(at: 20)
+    #expect(recorder.savedCount == 2)  // A and B
+    try recorder.appActivated("C", at: 30)  // ignored while paused
+    #expect(recorder.savedCount == 2)
+}

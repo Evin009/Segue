@@ -6,6 +6,8 @@ public struct ActivityRecorder {
     public private(set) var isPaused = false
     /// Screen locked or another Mac user active. Nothing is recorded until unlock.
     public private(set) var isLocked = false
+    /// Events saved so far. Lets callers tell whether a call really saved something.
+    public private(set) var savedCount = 0
 
     public init(cleaner: EventCleaner, store: EventStore) {
         self.cleaner = cleaner
@@ -60,9 +62,10 @@ public struct ActivityRecorder {
         }
     }
 
-    private func save(_ events: [CleanEvent]) throws {
+    private mutating func save(_ events: [CleanEvent]) throws {
         for event in events {
             try store.append(event)
+            savedCount += 1
         }
     }
 }

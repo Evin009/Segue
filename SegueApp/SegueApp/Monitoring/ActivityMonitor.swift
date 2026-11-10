@@ -54,7 +54,15 @@ final class ActivityMonitor {
             }
         }
 
-        handle(.wake)
+        handle(Self.sessionIsLocked() ? .lock : .wake)
+    }
+
+    /// Whether Segue launched behind the lock screen or while another Mac user is active.
+    private static func sessionIsLocked() -> Bool {
+        guard let session = CGSessionCopyCurrentDictionary() as? [String: Any] else { return false }
+        let screenLocked = session["CGSSessionScreenIsLocked"] as? Bool ?? false
+        let onConsole = session["kCGSSessionOnConsoleKey"] as? Bool ?? true
+        return screenLocked || !onConsole
     }
 
     private enum Signal {
@@ -89,9 +97,12 @@ final class ActivityMonitor {
 
     private func record(_ action: (inout ActivityRecorder) throws -> Void) {
         guard var current = recorder else { return }
+        let savedBefore = current.savedCount
         do {
             try action(&current)
-            problem = nil
+            if current.savedCount > savedBefore {
+                problem = nil
+            }
         } catch {
             problem = "Couldn't save activity: \(error.localizedDescription)"
         }
