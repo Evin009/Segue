@@ -115,3 +115,19 @@ Predictor: after X → A, guesses B  ✔ (learned the routine)
 Baseline:  always guesses most-used app  ✘ often
 ```
 Staying quiet counts as a miss, so the predictor can't look good by only guessing when easy.
+
+### Task 4: Eval tool
+
+**What:** one command that prints predictor vs baseline on your real data. It reads a copy of the database, so it never changes your data, even while Segue is running.
+
+**Example:**
+```
+swift run --package-path Packages/SegueCore segue-eval
+
+500 events, 200 switches to guess
+            Predictor   Baseline     Diff
+Top-1           45.0%      20.0%    +25.0
+Top-3           75.0%      55.0%    +20.0
+Coverage        90.0%     100.0%    -10.0
+```
+(Made-up numbers.) Under 100 switches, it warns that the numbers are mostly luck.

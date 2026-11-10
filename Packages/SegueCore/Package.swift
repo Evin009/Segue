@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v26)],
     products: [
         .library(name: "SegueCore", targets: ["SegueCore"]),
+        .executable(name: "segue-eval", targets: ["SegueEval"]),
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.12.0"),
@@ -15,6 +16,7 @@ let package = Package(
             name: "SegueCore",
             dependencies: [.product(name: "GRDB", package: "GRDB.swift")]
         ),
+        .executableTarget(name: "SegueEval", dependencies: ["SegueCore"]),
         .testTarget(
             name: "SegueCoreTests",
             dependencies: [

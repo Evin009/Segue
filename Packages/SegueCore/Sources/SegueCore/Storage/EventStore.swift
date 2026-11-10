@@ -18,6 +18,25 @@ public final class EventStore: Sendable {
         try Migrations.migrator.migrate(database)
     }
 
+    private init(database: DatabaseQueue, sessionGapSeconds: Int64) throws {
+        self.database = database
+        self.sessionGapSeconds = sessionGapSeconds
+        try Migrations.migrator.migrate(database)
+    }
+
+    /// An in-memory copy of the database at `path`. The file is opened read-only and never changed,
+    /// so this is safe while Segue is running.
+    public static func snapshot(
+        of path: String, sessionGapSeconds: Int64 = EventStore.defaultSessionGapSeconds
+    ) throws -> EventStore {
+        var config = Configuration()
+        config.readonly = true
+        let source = try DatabaseQueue(path: path, configuration: config)
+        let copy = try DatabaseQueue()
+        try source.backup(to: copy)
+        return try EventStore(database: copy, sessionGapSeconds: sessionGapSeconds)
+    }
+
     /// Saves the event and adds to its counts in one transaction, so both happen or neither does.
     public func append(_ event: CleanEvent) throws {
         try database.write { db in
