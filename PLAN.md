@@ -61,7 +61,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 
 ### Phase 2: Prediction
 
-- [ ] Baseline: "most used apps" guess for predictor to beat
+- [x] Baseline: "most used apps" guess for predictor to beat
 - [ ] Predictor (**you**): guess next app from last two
 - [ ] Scoring: replay past activity using only earlier data; measure correct guesses
 - [ ] Eval tool: print predictor vs baseline on real data

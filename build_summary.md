@@ -78,3 +78,16 @@ Saved: Chrome 4s, Finder 8s, Notes 15s
 Same app before and after a short pause or lock counts as one visit, so Segue never learns "after Notes comes Notes".
 While the screen is locked or another Mac user is active, Segue records nothing until you unlock. Pause always sticks, even if saving fails.
 If Segue starts while the screen is already locked, it waits for unlock. The menu's error message clears only after a real save.
+
+## Phase 2: Prediction
+
+### Task 1: Baseline
+
+**What:** the simple guess the predictor must beat. Always suggests your 3 most-used apps, ignoring what you just did and the time of day.
+
+**Example:**
+```
+History: Chrome ×5, Notes ×3, Mail ×2, Xcode ×1
+You're in Chrome → suggests Notes 0.27, Mail 0.18, Xcode 0.09
+```
+Score = share of all visits. The app you're in is never suggested.
