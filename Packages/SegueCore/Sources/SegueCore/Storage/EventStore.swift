@@ -21,7 +21,8 @@ public final class EventStore: Sendable {
     /// Saves the event and adds to its counts in one transaction, so both happen or neither does.
     public func append(_ event: CleanEvent) throws {
         try database.write { db in
-            let previous = try Self.recentEvents(db, limit: 2)
+            // Extra rows so a visit split by several pauses still collapses into one.
+            let previous = try Self.recentEvents(db, limit: 10)
             try db.execute(
                 sql: """
                     INSERT INTO events (ts, app_id, domain, state, duration_s, time_bucket, is_weekend)

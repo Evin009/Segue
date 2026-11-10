@@ -61,7 +61,38 @@ private func key(_ prev2: String, _ prev1: String, _ next: String, _ bucket: Str
     ])
 }
 
+@Test func sameAppAfterPauseAddsNoCounts() {
+    // A ends at 10, pause, A again at 14.
+    let keys = transitionKeys(for: event("A", at: 14), previous: [event("A", at: 0)], sessionGapSeconds: gap)
+    #expect(keys.isEmpty)
+}
+
+@Test func sameAppAfterPauseIsOneVisitForContext() {
+    // X, then A split in two by a short pause, then B.
+    let previous = [event("X", at: 0), event("A", at: 10), event("A", at: 24)]
+    let keys = transitionKeys(for: event("B", at: 34), previous: previous, sessionGapSeconds: gap)
+    #expect(keys.first == key("X", "A", "B", "morning"))
+    #expect(keys.count == 4)
+}
+
+@Test func sameAppAfterLongGapIsNewVisit() {
+    let keys = transitionKeys(for: event("A", at: 5000), previous: [event("A", at: 0)], sessionGapSeconds: gap)
+    #expect(keys == [key("", "", "A", "any")])
+}
+
 // MARK: - Store
+
+@Test func storeTreatsPauseSplitAsOneVisit() throws {
+    let store = try EventStore(path: nil)
+    try store.append(event("X", at: 0))
+    try store.append(event("A", at: 10))
+    try store.append(event("A", at: 24))
+    try store.append(event("B", at: 34))
+
+    #expect(try store.weights(prev2: "", prev1: "A", timeBucket: "any") == ["B": 1])
+    #expect(try store.weights(prev2: "X", prev1: "A", timeBucket: "morning") == ["B": 1])
+    #expect(try store.weights(prev2: "", prev1: "", timeBucket: "any") == ["X": 1, "A": 1, "B": 1])
+}
 
 @Test func appendSavesEventAndCounts() throws {
     let store = try EventStore(path: nil)

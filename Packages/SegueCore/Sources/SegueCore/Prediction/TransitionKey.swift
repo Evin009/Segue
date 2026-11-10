@@ -19,22 +19,40 @@ public struct TransitionKey: Hashable, Sendable {
 ///
 /// - Parameter previous: earlier events, oldest first.
 /// - Returns: up to four keys. Earlier events separated by more than `sessionGapSeconds`
-///   (sleep, overnight) do not count as context.
+///   (sleep, overnight) do not count as context. The same state split by a short pause or lock
+///   is one visit: continuing it adds no keys, and it counts once as context.
 public func transitionKeys(for event: CleanEvent, previous: [CleanEvent], sessionGapSeconds: Int64) -> [TransitionKey] {
-    func connected(_ earlier: CleanEvent, _ later: CleanEvent) -> Bool {
-        later.ts - (earlier.ts + earlier.durationS) <= sessionGapSeconds
+    struct Visit {
+        var state: String
+        var start: Int64
+        var end: Int64
     }
 
-    let bucket = event.timeBucket.rawValue
-    var prev1: CleanEvent?
-    var prev2: CleanEvent?
-    if let last = previous.last, connected(last, event) {
-        prev1 = last
-        if previous.count >= 2, connected(previous[previous.count - 2], last) {
-            prev2 = previous[previous.count - 2]
+    func connected(_ earlierEnd: Int64, _ laterStart: Int64) -> Bool {
+        laterStart - earlierEnd <= sessionGapSeconds
+    }
+
+    var visits: [Visit] = []
+    for earlier in previous {
+        let end = earlier.ts + earlier.durationS
+        if let last = visits.last, last.state == earlier.state, connected(last.end, earlier.ts) {
+            visits[visits.count - 1].end = end
+        } else {
+            visits.append(Visit(state: earlier.state, start: earlier.ts, end: end))
         }
     }
 
+    var prev1: Visit?
+    var prev2: Visit?
+    if let last = visits.last, connected(last.end, event.ts) {
+        if last.state == event.state { return [] }
+        prev1 = last
+        if visits.count >= 2, connected(visits[visits.count - 2].end, last.start) {
+            prev2 = visits[visits.count - 2]
+        }
+    }
+
+    let bucket = event.timeBucket.rawValue
     var keys: [TransitionKey] = []
     if let prev1 {
         if let prev2 {

@@ -65,3 +65,14 @@ Counts added for Chrome:
   overall                               +1
 ```
 A gap over 30 minutes (sleep, overnight) breaks the chain, so Monday night's last app doesn't lead to Tuesday morning's first.
+
+### Task 4: Activity monitor
+
+**What:** connects Segue to your real Mac. Every app switch now goes through the cleaner into the database. Sleep, screen lock and quit save the current app. The menu has a Pause button.
+
+**Example:**
+```
+You: Chrome → Finder → Notes, then lock screen
+Saved: Chrome 4s, Finder 8s, Notes 15s
+```
+Same app before and after a short pause or lock counts as one visit, so Segue never learns "after Notes comes Notes".
