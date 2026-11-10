@@ -4,7 +4,7 @@ Mac menu bar app that learns your app and website habits and suggests what to op
 
 **Why:** portfolio project for Apple internship teams. Every part must be defensible in an interview.
 
-**Big idea:** a simple statistical model picks suggestions. AI only explains them, using the model's real numbers.
+**Big idea:** a simple statistical model picks suggestions. AI explains them and helps on day 1 before there is data. Every model choice is decided by measured accuracy, not guesses.
 
 ## Features
 
@@ -63,12 +63,12 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 
 - [x] Baseline: "most used apps" guess for predictor to beat
 - [x] Predictor: guess next app from last two (Claude wrote it at your request; you explain it)
-- [ ] Scoring: replay past activity using only earlier data; measure correct guesses
+- [ ] Scoring: replay past activity using only earlier data; measure top-1, top-3, and how often it suggests
 - [ ] Eval tool: print predictor vs baseline on real data
 
 ### Phase 3: Popup
 
-- [ ] Feedback: accept raises rank, dismiss lowers it
+- [ ] Feedback: learn from accept/dismiss with a bandit (simple RL) instead of plain ±1
 - [ ] Popup + hotkey: show top 3 without stealing focus
 
 ### Phase 4: Browsers (MVP done)
@@ -83,6 +83,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 
 - [ ] Fact check: reject explanations with made-up numbers
 - [ ] Explanations: one-line reason, plain fallback when AI is unavailable
+- [ ] Day-1 AI: AI guesses from known apps while data is thin, fading out as counts grow; keep only if scoring shows it helps
 - [ ] Commands: AI opens only apps and sites predictor already knows
 
 ### Phase 6: Privacy
@@ -97,7 +98,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 
 ### Phase 8: Stretch
 
-- [ ] Pick one: AI agent access, morning restore, or Core ML vs predictor
+- [ ] Neural network vs counting: train a small on-device model on weeks of data; keep whichever scores better
 
 ### Phase 9: Ship
 
@@ -105,6 +106,8 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 - [ ] Launch: README, 60-second demo, resume bullets from real numbers
 
 ## Open questions
+
+- Success target: set before first real eval (e.g. predictor beats baseline top-3 by a clear margin).
 
 - Final name?
 - Should popup auto-show? Decide from accept-rate data.
