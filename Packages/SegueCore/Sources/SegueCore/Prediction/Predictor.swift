@@ -28,29 +28,41 @@ public struct Predictor: Sendable {
     public func predict(
         prev2: String?, current: String, timeBucket: TimeBucket, dismissed: Set<String> = []
     ) throws -> [Suggestion] {
-        // TODO(you): write the predictor. Steps:
-        //
-        // 1. Read the 4 tiers from the store, most specific first:
-        //      tier 1: store.weights(prev2: prev2, prev1: current, timeBucket: timeBucket.rawValue)  (skip if prev2 is nil)
-        //      tier 2: store.weights(prev2: "", prev1: current, timeBucket: timeBucket.rawValue)
-        //      tier 3: store.weights(prev2: "", prev1: current, timeBucket: "any")
-        //      tier 4: store.weights(prev2: "", prev1: "", timeBucket: "any")
-        //    Each returns [next state: weight].
-        //
-        // 2. Skip tiers 1–3 if their total weight is under config.minTierWeight.
-        //
-        // 3. For each tier, probability = weight / tier total.
-        //    score = config.tierMultipliers[tier] × probability.
-        //    A state keeps the score from the first tier it appears in.
-        //    Also remember each state's plain probability (needed for step 6).
-        //
-        // 4. Remove `current` and anything in `dismissed`.
-        //
-        // 5. Sort by score, highest first; ties by state name (A before B).
-        //
-        // 6. If the top state's plain probability is under config.minProbability, return [].
-        //
-        // 7. Return the first config.limit as [Suggestion].
-        return []
+        // 1. The 4 tiers, most specific first. Each is [next state: weight].
+        let bucket = timeBucket.rawValue
+        let tiers: [[String: Double]] = [
+            try prev2.map { try store.weights(prev2: $0, prev1: current, timeBucket: bucket) } ?? [:],
+            try store.weights(prev2: "", prev1: current, timeBucket: bucket),
+            try store.weights(prev2: "", prev1: current, timeBucket: "any"),
+            try store.weights(prev2: "", prev1: "", timeBucket: "any"),
+        ]
+
+        // 2–3. Score each state from the first tier it appears in.
+        var options: [String: (score: Double, probability: Double)] = [:]
+        for (tier, weights) in tiers.enumerated() {
+            let total = weights.values.reduce(0, +)
+            let isLastTier = tier == tiers.count - 1
+            guard total > 0, isLastTier || total >= config.minTierWeight else { continue }
+
+            for (state, weight) in weights where options[state] == nil {
+                let probability = weight / total
+                options[state] = (config.tierMultipliers[tier] * probability, probability)
+            }
+        }
+
+        // 4–5. Drop current and dismissed, then rank by score, ties by name.
+        let ranked = options
+            .filter { $0.key != current && !dismissed.contains($0.key) }
+            .sorted { a, b in
+                a.value.score != b.value.score ? a.value.score > b.value.score : a.key < b.key
+            }
+
+        // 6. Not confident enough: suggest nothing.
+        guard let top = ranked.first, top.value.probability >= config.minProbability else {
+            return []
+        }
+
+        // 7. Top few.
+        return ranked.prefix(config.limit).map { Suggestion(state: $0.key, score: $0.value.score) }
     }
 }

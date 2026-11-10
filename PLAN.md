@@ -40,7 +40,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 ## Rules
 
 - Claude explains each step and command first
-- You write the predictor; Claude writes tests and reviews
+- Claude wrote the predictor at your request; you must be able to explain every line
 - Only measured numbers go in README or resume
 - Small tasks, tests pass before commit, no push without your OK
 - Finish Phases 0–4 (MVP) first
@@ -62,7 +62,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 ### Phase 2: Prediction
 
 - [x] Baseline: "most used apps" guess for predictor to beat
-- [ ] Predictor (**you**): guess next app from last two
+- [x] Predictor: guess next app from last two (Claude wrote it at your request; you explain it)
 - [ ] Scoring: replay past activity using only earlier data; measure correct guesses
 - [ ] Eval tool: print predictor vs baseline on real data
 

@@ -91,3 +91,15 @@ History: Chrome ×5, Notes ×3, Mail ×2, Xcode ×1
 You're in Chrome → suggests Notes 0.27, Mail 0.18, Xcode 0.09
 ```
 Score = share of all visits. The app you're in is never suggested.
+
+### Task 2: Predictor
+
+**What:** guesses your next app from your last two apps and the time of day. It checks the most specific pattern first and falls back to broader ones when there isn't enough data (under 5 visits).
+
+**Example:**
+```
+You usually go: Slack → Chrome → Xcode (mornings)
+Now: Slack → Chrome, morning → suggests Xcode, score 1.0
+Same but only seen 3 times → falls back to "after Chrome, mornings" → lower score
+```
+Never suggests the app you're in. Suggests nothing if the best guess is under 20% likely.
