@@ -3,7 +3,7 @@
 ## Workflow
 
 1. Work phase by phase, following [PLAN.md](PLAN.md).
-2. Commit task by task within each phase.
+2. Commit task by task within each phase. With each task, add a short, simple entry with an example to [build_summary.md](build_summary.md).
 3. At the end of each phase, a separate agent runs the tests.
 4. Give a short, concise summary of what was done in that phase and how.
 5. Wait for human review.
