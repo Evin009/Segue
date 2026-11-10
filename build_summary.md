@@ -103,3 +103,15 @@ Now: Slack → Chrome, morning → suggests Xcode, score 1.0
 Same but only seen 3 times → falls back to "after Chrome, mornings" → lower score
 ```
 Never suggests the app you're in. Suggests nothing if the best guess is under 20% likely.
+
+### Task 3: Scoring
+
+**What:** replays your saved history in order and checks each guess. Before every switch, the guesser sees only what happened earlier, as if live. Reports top-1 (first guess right), top-3 (right answer in the 3), and coverage (how often it suggested anything).
+
+**Example:**
+```
+History: X → A → B → C, ten times
+Predictor: after X → A, guesses B  ✔ (learned the routine)
+Baseline:  always guesses most-used app  ✘ often
+```
+Staying quiet counts as a miss, so the predictor can't look good by only guessing when easy.
