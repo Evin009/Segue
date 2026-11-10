@@ -49,3 +49,19 @@ Mac reports:                     Cleaner keeps:
 9:20:00  VS Code  (repeat)
 ```
 Mail is dropped, since 1 second isn't a real visit. The repeated VS Code becomes one entry.
+
+### Task 3: Database
+
+**What:** saves each clean event and counts "what came next", so Segue can learn patterns.
+
+**Example:**
+```
+You use:  Slack → VS Code → Chrome   (morning)
+
+Counts added for Chrome:
+  after Slack, VS Code, in the morning  +1
+  after VS Code, in the morning         +1
+  after VS Code, any time               +1
+  overall                               +1
+```
+A gap over 30 minutes (sleep, overnight) breaks the chain, so Monday night's last app doesn't lead to Tuesday morning's first.
