@@ -34,3 +34,22 @@ What was built in each phase, key decisions, and likely interview questions.
 - Why store counts instead of recomputing them from events each time?
 - How do you test code that depends on macOS notifications?
 - What happens to time spent on the lock screen, and why does it matter for predictions?
+
+## Phase 2: Prediction
+
+**Built:** a most-used baseline, a 4-tier back-off predictor, a replay evaluator (top-1, top-3, coverage), and a `segue-eval` command that compares both on real data.
+
+**Key decisions:**
+- Counting (back-off Markov) is the core: works with little data, fast, explainable. Neural nets and RL need more data, not less, so they don't solve cold start.
+- Hybrid plan: AI helps on day 1, a bandit learns from feedback, and a neural network is tested later. Each stays only if the evaluator shows it helps.
+- Replay uses only earlier data before each guess, and staying quiet counts as a miss, so the score can't be gamed.
+- The eval tool reads an in-memory copy of the database, so it can't change real data.
+- Claude wrote the predictor at the user's request; the user must be able to explain it.
+
+**Results:** not yet. Only 6 real events so far. Real numbers go in METRICS.md once there are 100+ switches.
+
+**Interview questions:**
+- Why back-off instead of one model over all context?
+- Why does the threshold use plain probability, not score?
+- How do you avoid leaking future data into an evaluation?
+- Why might a neural network lose to counting on one person's data?
