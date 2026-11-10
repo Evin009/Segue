@@ -22,7 +22,7 @@ Activity → Cleaner → Database → Predictor → Popup → your feedback → 
 
 **Stack:** Swift 6, SwiftUI + AppKit, SQLite (GRDB + SQLCipher), Apple Foundation Models, GitHub Actions. macOS 26+.
 
-**Code:** `Packages/SegueCore` = testable logic. `SegueApp/` = UI and Mac code. `docs/LOG.md` = phase notes. `docs/METRICS.md` = measured results.
+**Code:** `Packages/SegueCore` = testable logic. `SegueApp/` = UI and Mac code. `docs/HOW_IT_WORKS.md` = simple guide + interview script. `docs/LOG.md` = phase notes. `docs/METRICS.md` = measured results.
 
 **Predictor:** check most specific first; tiers 1–3 need total weight of at least 5.
 
