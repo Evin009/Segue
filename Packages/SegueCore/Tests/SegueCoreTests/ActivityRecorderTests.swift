@@ -73,6 +73,16 @@ private func makeRecorder() throws -> (ActivityRecorder, EventStore) {
     #expect(events.map(\.durationS) == [10, 10])
 }
 
+@Test func launchWhileLockedRecordsNothingUntilUnlock() throws {
+    var (recorder, store) = try makeRecorder()
+    try recorder.lock(at: 0)  // app starts behind the lock screen
+    try recorder.wake(frontAppID: "A", at: 10)
+    try recorder.appActivated("B", at: 20)
+    try recorder.unlock(frontAppID: "C", at: 30)
+    try recorder.interrupt(at: 40)
+    #expect(try store.allEvents().map(\.state) == ["C"])
+}
+
 @Test func wakeWhenUnlockedRecordsFrontApp() throws {
     var (recorder, store) = try makeRecorder()
     try recorder.interrupt(at: 0)
@@ -103,10 +113,9 @@ private func makeRecorder() throws -> (ActivityRecorder, EventStore) {
 
 // MARK: - Save failures
 
-@Test func pauseSticksWhenSaveFails() throws {
+private func makeBrokenRecorder() throws -> (ActivityRecorder, URL) {
     let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: folder) }
     let path = folder.appendingPathComponent("segue.sqlite").path
 
     var calendar = Calendar(identifier: .gregorian)
@@ -119,9 +128,21 @@ private func makeRecorder() throws -> (ActivityRecorder, EventStore) {
 
     // Break the database from a second connection so the next save throws.
     try DatabaseQueue(path: path).write { try $0.execute(sql: "DROP TABLE events") }
+    return (recorder, folder)
+}
 
+@Test func pauseSticksWhenSaveFails() throws {
+    var (recorder, folder) = try makeBrokenRecorder()
+    defer { try? FileManager.default.removeItem(at: folder) }
     #expect(throws: (any Error).self) { try recorder.pause(at: 10) }
     #expect(recorder.isPaused)
+}
+
+@Test func savedCountStaysSameWhenSaveFails() throws {
+    var (recorder, folder) = try makeBrokenRecorder()
+    defer { try? FileManager.default.removeItem(at: folder) }
+    #expect(throws: (any Error).self) { try recorder.interrupt(at: 10) }
+    #expect(recorder.savedCount == 0)
 }
 
 @Test func savedCountGrowsOnlyWhenEventsAreSaved() throws {
