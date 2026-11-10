@@ -1,9 +1,11 @@
 /// Recording rules: sends app switches through the cleaner into the store, and handles pause,
-/// resume, and interruptions like sleep or screen lock.
+/// resume, screen lock, user switching, and interruptions like sleep.
 public struct ActivityRecorder {
     private var cleaner: EventCleaner
     private let store: EventStore
     public private(set) var isPaused = false
+    /// Screen locked or another Mac user active. Nothing is recorded until unlock.
+    public private(set) var isLocked = false
 
     public init(cleaner: EventCleaner, store: EventStore) {
         self.cleaner = cleaner
@@ -13,25 +15,48 @@ public struct ActivityRecorder {
     /// States held but not yet saved, oldest first.
     public var heldStates: [String] { cleaner.heldStates }
 
+    private var isRecording: Bool { !isPaused && !isLocked }
+
     public mutating func appActivated(_ appID: String, at ts: Int64) throws {
-        guard !isPaused else { return }
+        guard isRecording else { return }
         try save(cleaner.ingest(RawEvent(ts: ts, appID: appID)))
     }
 
-    /// Saves what is held. Use for sleep, screen lock, and quit.
+    /// Saves what is held. Use for sleep and quit.
     public mutating func interrupt(at ts: Int64) throws {
         try save(cleaner.flush(at: ts))
     }
 
-    public mutating func pause(at ts: Int64) throws {
+    /// Display or Mac woke. Ignored while locked, since the lock screen may still be showing.
+    public mutating func wake(frontAppID: String?, at ts: Int64) throws {
+        try record(frontAppID, at: ts)
+    }
+
+    /// Screen locked, or another Mac user became active.
+    public mutating func lock(at ts: Int64) throws {
+        isLocked = true
         try interrupt(at: ts)
+    }
+
+    public mutating func unlock(frontAppID: String?, at ts: Int64) throws {
+        isLocked = false
+        try record(frontAppID, at: ts)
+    }
+
+    /// Pause sticks even if saving what's held fails.
+    public mutating func pause(at ts: Int64) throws {
         isPaused = true
+        try interrupt(at: ts)
     }
 
     public mutating func resume(frontAppID: String?, at ts: Int64) throws {
         isPaused = false
-        if let frontAppID {
-            try appActivated(frontAppID, at: ts)
+        try record(frontAppID, at: ts)
+    }
+
+    private mutating func record(_ appID: String?, at ts: Int64) throws {
+        if let appID {
+            try appActivated(appID, at: ts)
         }
     }
 

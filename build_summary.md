@@ -76,3 +76,4 @@ You: Chrome → Finder → Notes, then lock screen
 Saved: Chrome 4s, Finder 8s, Notes 15s
 ```
 Same app before and after a short pause or lock counts as one visit, so Segue never learns "after Notes comes Notes".
+While the screen is locked or another Mac user is active, Segue records nothing until you unlock. Pause always sticks, even if saving fails.

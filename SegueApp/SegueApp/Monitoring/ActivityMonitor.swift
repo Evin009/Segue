@@ -36,30 +36,46 @@ final class ActivityMonitor {
             if let appID { monitor.record { try $0.appActivated(appID, at: Self.now()) } }
         }
 
-        let interruptions: [(NotificationCenter, Notification.Name)] = [
-            (workspace, NSWorkspace.willSleepNotification),
-            (workspace, NSWorkspace.screensDidSleepNotification),
-            (DistributedNotificationCenter.default(), Notification.Name("com.apple.screenIsLocked")),
-            (NotificationCenter.default, NSApplication.willTerminateNotification),
+        let distributed = DistributedNotificationCenter.default()
+        let signals: [(NotificationCenter, Notification.Name, Signal)] = [
+            (workspace, NSWorkspace.willSleepNotification, .interrupt),
+            (workspace, NSWorkspace.screensDidSleepNotification, .interrupt),
+            (NotificationCenter.default, NSApplication.willTerminateNotification, .interrupt),
+            (distributed, Notification.Name("com.apple.screenIsLocked"), .lock),
+            (workspace, NSWorkspace.sessionDidResignActiveNotification, .lock),
+            (distributed, Notification.Name("com.apple.screenIsUnlocked"), .unlock),
+            (workspace, NSWorkspace.sessionDidBecomeActiveNotification, .unlock),
+            (workspace, NSWorkspace.didWakeNotification, .wake),
+            (workspace, NSWorkspace.screensDidWakeNotification, .wake),
         ]
-        for (center, name) in interruptions {
+        for (center, name, signal) in signals {
             observe(center, name) { _ in nil } then: { monitor, _ in
-                monitor.record { try $0.interrupt(at: Self.now()) }
+                monitor.handle(signal)
             }
         }
 
-        let returns: [(NotificationCenter, Notification.Name)] = [
-            (workspace, NSWorkspace.didWakeNotification),
-            (workspace, NSWorkspace.screensDidWakeNotification),
-            (DistributedNotificationCenter.default(), Notification.Name("com.apple.screenIsUnlocked")),
-        ]
-        for (center, name) in returns {
-            observe(center, name) { _ in nil } then: { monitor, _ in
-                monitor.recordFrontApp()
-            }
-        }
+        handle(.wake)
+    }
 
-        recordFrontApp()
+    private enum Signal {
+        /// Sleep or quit: save what's held.
+        case interrupt
+        /// Screen locked or another Mac user active: save, then record nothing until unlock.
+        case lock
+        case unlock
+        /// Mac or display woke. Ignored by the recorder while locked.
+        case wake
+    }
+
+    private func handle(_ signal: Signal) {
+        let ts = Self.now()
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        switch signal {
+        case .interrupt: record { try $0.interrupt(at: ts) }
+        case .lock: record { try $0.lock(at: ts) }
+        case .unlock: record { try $0.unlock(frontAppID: front, at: ts) }
+        case .wake: record { try $0.wake(frontAppID: front, at: ts) }
+        }
     }
 
     func togglePause() {
@@ -69,22 +85,18 @@ final class ActivityMonitor {
         } else {
             record { try $0.pause(at: Self.now()) }
         }
-        isPaused = recorder?.isPaused ?? false
-    }
-
-    private func recordFrontApp() {
-        guard let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier else { return }
-        record { try $0.appActivated(front, at: Self.now()) }
     }
 
     private func record(_ action: (inout ActivityRecorder) throws -> Void) {
         guard var current = recorder else { return }
         do {
             try action(&current)
+            problem = nil
         } catch {
             problem = "Couldn't save activity: \(error.localizedDescription)"
         }
         recorder = current
+        isPaused = current.isPaused
     }
 
     /// Reads what's needed from the notification on the main queue, then hands it to the monitor.
