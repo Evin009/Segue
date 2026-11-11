@@ -166,7 +166,7 @@ swift run --package-path Packages/SegueCore segue-eval
 
 Needs 100+ switches to mean anything. Reads a copy of the database, so real data is never changed.
 
-**Success target:** set before seeing results. Proposed: predictor's top-3 beats baseline's by 10+ points.
+**Success target:** set before seeing results: predictor's top-3 beats baseline's by 10+ points.
 
 ---
 

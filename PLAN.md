@@ -24,6 +24,8 @@ Activity → Cleaner → Database → Predictor → Popup → your feedback → 
 
 **Code:** `Packages/SegueCore` = testable logic. `SegueApp/` = UI and Mac code. `docs/HOW_IT_WORKS.md` = simple guide + interview script. `docs/LOG.md` = phase notes. `docs/METRICS.md` = measured results.
 
+**Success target (set before real data):** predictor top-3 beats baseline top-3 by 10+ points.
+
 **Predictor:** check most specific first; tiers 1–3 need total weight of at least 5.
 
 | Tier | Looks at | Score |
@@ -107,7 +109,6 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 
 ## Open questions
 
-- Success target: set before first real eval (e.g. predictor beats baseline top-3 by a clear margin).
 
 - Final name?
 - Should popup auto-show? Decide from accept-rate data.
