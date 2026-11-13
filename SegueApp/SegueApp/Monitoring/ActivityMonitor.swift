@@ -11,11 +11,13 @@ final class ActivityMonitor {
     private(set) var problem: String?
 
     @ObservationIgnored private var recorder: ActivityRecorder?
+    @ObservationIgnored private var store: EventStore?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
     init() {
         do {
             let store = try EventStore(path: Self.databasePath())
+            self.store = store
             recorder = ActivityRecorder(
                 cleaner: EventCleaner(config: .standard, calendar: .autoupdatingCurrent),
                 store: store
@@ -93,6 +95,40 @@ final class ActivityMonitor {
         case .lock: record { try $0.lock(at: ts) }
         case .unlock: record { try $0.unlock(frontAppID: front, at: ts) }
         case .wake: record { try $0.wake(frontAppID: front, at: ts) }
+        }
+    }
+
+    // MARK: - Suggestions
+
+    /// Where you are now, or `nil` if nothing useful is in front (Segue itself, the lock screen).
+    func currentContext() -> PredictionContext? {
+        guard let store, let recorder,
+              let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+              !CleanerConfig.defaultIgnoredAppIDs.contains(front)
+        else { return nil }
+        return PredictionContext(
+            recent: (try? store.recentEvents(limit: 10)) ?? [],
+            held: recorder.heldStates,
+            heldSince: recorder.heldSince,
+            current: front,
+            now: Self.now()
+        )
+    }
+
+    /// Top suggestions for the app in front now.
+    func suggestions(for context: PredictionContext) -> [Suggestion] {
+        guard let store else { return [] }
+        let bucket = TimeBucket.of(Date(), calendar: .autoupdatingCurrent)
+        return (try? Predictor(store: store).suggest(
+            prev2: context.prev2, current: context.current, timeBucket: bucket, at: Self.now()
+        )) ?? []
+    }
+
+    func recordFeedback(in context: PredictionContext, suggested state: String, accepted: Bool) {
+        do {
+            try store?.recordFeedback(after: context.current, suggested: state, accepted: accepted, at: Self.now())
+        } catch {
+            problem = "Couldn't save feedback: \(error.localizedDescription)"
         }
     }
 
