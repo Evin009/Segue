@@ -139,6 +139,27 @@ The 0.4 multiplier comes from **"Stupid Backoff"** (Brants et al., Google, 2007)
 
 ---
 
+### Learning from you: the bandit
+
+Each time you accept or dismiss a suggestion, Segue counts it for that situation ("in Chrome, Mail was suggested"). It turns those counts into a **trust** number:
+
+```
+trust = 2 × (accepts + 1) / (accepts + dismisses + 2)
+
+No feedback          → 1.0  (no change)
+Accepted 3, never no → 1.6  (moves up)
+Accepted 1, no 4×    → 0.57 (moves down)
+```
+
+**Final score = predictor score × trust.**
+
+- The `+1` and `+2` start everyone at a fair 50/50, so one click doesn't swing things wildly.
+- This is a **Beta-Bernoulli bandit**, a simple form of reinforcement learning (RL): learn from reward (accept) and penalty (dismiss).
+- Trust changes the **order**, not the 20% confidence check. Dismissing something lowers it but doesn't silence it forever.
+- A dismissed suggestion is also hidden for **4 hours** in that same situation.
+
+**Interview line:** "Feedback goes through a Beta-Bernoulli estimate of the accept rate per context, which multiplies the back-off score. It's deterministic for now; Thompson sampling could add exploration if the data shows it helps."
+
 ## 4. Eval: grading the model
 
 **Eval = evaluation = grading an exam.**

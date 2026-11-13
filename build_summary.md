@@ -154,3 +154,15 @@ In Chrome, Segue suggests Mail → you press Esc (dismiss)
 Next 4 hours in Chrome: Mail not suggested
 In Slack: Mail can still show
 ```
+
+### Task 3: Bandit
+
+**What:** suggestions you accept move up and ones you dismiss move down. Each gets a trust number from its accept and dismiss counts, which multiplies its score.
+
+**Example:**
+```
+In Chrome: Mail score 0.24, Notes 0.16
+You dismiss Mail 5 times → Mail trust 0.29 → score 0.07
+Now: Notes first, Mail second
+```
+Trust starts at 1 (no change), so new suggestions aren't punished.

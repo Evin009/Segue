@@ -25,8 +25,10 @@ public struct Predictor: Sendable {
     ///   - prev2: the state before `current`, if any.
     ///   - current: the state you're in now. Never suggested.
     ///   - dismissed: states dismissed here in the last 4 hours. Never suggested.
+    ///   - feedback: past accepts and dismisses while in `current`. Raises or lowers scores.
     public func predict(
-        prev2: String?, current: String, timeBucket: TimeBucket, dismissed: Set<String> = []
+        prev2: String?, current: String, timeBucket: TimeBucket,
+        dismissed: Set<String> = [], feedback: [String: Feedback] = [:]
     ) throws -> [Suggestion] {
         // 1. The 4 tiers, most specific first. Each is [next state: weight].
         let bucket = timeBucket.rawValue
@@ -46,9 +48,13 @@ public struct Predictor: Sendable {
 
             for (state, weight) in weights where options[state] == nil {
                 let probability = weight / total
-                options[state] = (config.tierMultipliers[tier] * probability, probability)
+                let trust = feedback[state].map(Self.trust) ?? 1
+                options[state] = (config.tierMultipliers[tier] * probability * trust, probability)
             }
         }
+
+        // Score includes trust from feedback, but the confidence check below uses plain
+        // probability, so feedback reorders suggestions without silencing them.
 
         // 4–5. Drop current and dismissed, then rank by score, ties by name.
         let ranked = options
@@ -64,5 +70,21 @@ public struct Predictor: Sendable {
 
         // 7. Top few.
         return ranked.prefix(config.limit).map { Suggestion(state: $0.key, score: $0.value.score) }
+    }
+
+    /// The bandit: how much to trust a suggestion, from accepts and dismisses.
+    /// Beta-Bernoulli estimate of the accept rate, (accepts + 1) / (accepts + dismisses + 2),
+    /// doubled so no feedback gives 1 and leaves the score unchanged.
+    public static func trust(_ feedback: Feedback) -> Double {
+        2 * Double(feedback.accepts + 1) / Double(feedback.accepts + feedback.dismisses + 2)
+    }
+
+    /// What the popup shows: predicts using feedback and recent dismissals saved in the store.
+    public func suggest(prev2: String?, current: String, timeBucket: TimeBucket, at ts: Int64) throws -> [Suggestion] {
+        try predict(
+            prev2: prev2, current: current, timeBucket: timeBucket,
+            dismissed: store.recentlyDismissed(after: current, at: ts),
+            feedback: store.feedback(after: current)
+        )
     }
 }

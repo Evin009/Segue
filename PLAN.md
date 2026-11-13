@@ -70,7 +70,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 
 ### Phase 3: Popup
 
-- [ ] Feedback: learn from accept/dismiss with a bandit (simple RL) instead of plain ±1
+- [x] Feedback: learn from accept/dismiss with a bandit (simple RL) instead of plain ±1
 - [ ] Popup + hotkey: show top 3 without stealing focus
 
 ### Phase 4: Browsers (MVP done)
