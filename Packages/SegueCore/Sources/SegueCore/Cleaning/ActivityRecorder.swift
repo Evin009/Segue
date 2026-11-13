@@ -17,6 +17,9 @@ public struct ActivityRecorder {
     /// States held but not yet saved, oldest first.
     public var heldStates: [String] { cleaner.heldStates }
 
+    /// When the oldest held state started.
+    public var heldSince: Int64? { cleaner.heldSince }
+
     private var isRecording: Bool { !isPaused && !isLocked }
 
     public mutating func appActivated(_ appID: String, at ts: Int64) throws {

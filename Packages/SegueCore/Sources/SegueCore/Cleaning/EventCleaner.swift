@@ -45,6 +45,9 @@ public struct EventCleaner: Sendable {
     }
 
     /// States held but not yet emitted, oldest first.
+    /// When the oldest held state started, or `nil` if nothing is held.
+    public var heldSince: Int64? { pending?.ts }
+
     public var heldStates: [String] {
         [pending?.state, candidate?.state].compactMap { $0 }
     }
