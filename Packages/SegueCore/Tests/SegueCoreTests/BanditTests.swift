@@ -56,3 +56,14 @@ private func storeBC() throws -> EventStore {
     let later = try predictor.suggest(prev2: nil, current: "A", timeBucket: .afternoon, at: 130 + 5 * 3600)
     #expect(later.map(\.state).prefix(2) == ["C", "B"])
 }
+
+@Test func feedbackCannotSilenceConfidentPrediction() throws {
+    // After A: B 10 of 20 (50%), C 3 of 20 (15%), seven others once each.
+    // B is dismissed a lot, C accepted a lot, so C ranks first. The confidence check must
+    // still pass, because without feedback the top guess (B) is 50% likely.
+    let others = ["D", "E", "F", "G", "H", "I", "J"].map { (TimeBucket.afternoon, ["A", $0]) }
+    let store = try storeWith(sessions: repeated(10, .afternoon, ["A", "B"]) + repeated(3, .afternoon, ["A", "C"]) + others)
+    let feedback = ["B": Feedback(accepts: 0, dismisses: 20), "C": Feedback(accepts: 10, dismisses: 0)]
+    let ranked = try Predictor(store: store).predict(prev2: nil, current: "A", timeBucket: .afternoon, feedback: feedback)
+    #expect(ranked.first?.state == "C")
+}

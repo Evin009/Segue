@@ -40,7 +40,8 @@ public struct Predictor: Sendable {
         ]
 
         // 2–3. Score each state from the first tier it appears in.
-        var options: [String: (score: Double, probability: Double)] = [:]
+        // `base` is the back-off score alone; `score` also includes trust from feedback.
+        var options: [String: (base: Double, score: Double, probability: Double)] = [:]
         for (tier, weights) in tiers.enumerated() {
             let total = weights.values.reduce(0, +)
             let isLastTier = tier == tiers.count - 1
@@ -48,24 +49,27 @@ public struct Predictor: Sendable {
 
             for (state, weight) in weights where options[state] == nil {
                 let probability = weight / total
+                let base = config.tierMultipliers[tier] * probability
                 let trust = feedback[state].map(Self.trust) ?? 1
-                options[state] = (config.tierMultipliers[tier] * probability * trust, probability)
+                options[state] = (base, base * trust, probability)
             }
         }
 
-        // Score includes trust from feedback, but the confidence check below uses plain
-        // probability, so feedback reorders suggestions without silencing them.
+        // 4. Drop current and dismissed.
+        let candidates = options.filter { $0.key != current && !dismissed.contains($0.key) }
 
-        // 4–5. Drop current and dismissed, then rank by score, ties by name.
-        let ranked = options
-            .filter { $0.key != current && !dismissed.contains($0.key) }
-            .sorted { a, b in
-                a.value.score != b.value.score ? a.value.score > b.value.score : a.key < b.key
-            }
-
-        // 6. Not confident enough: suggest nothing.
-        guard let top = ranked.first, top.value.probability >= config.minProbability else {
+        // 6 first: is the best guess without feedback confident enough? Feedback only
+        // reorders suggestions; it must never decide whether anything is shown.
+        let bestBase = candidates.max { a, b in
+            a.value.base != b.value.base ? a.value.base < b.value.base : a.key > b.key
+        }
+        guard let bestBase, bestBase.value.probability >= config.minProbability else {
             return []
+        }
+
+        // 5. Rank by score including feedback, ties by name.
+        let ranked = candidates.sorted { a, b in
+            a.value.score != b.value.score ? a.value.score > b.value.score : a.key < b.key
         }
 
         // 7. Top few.

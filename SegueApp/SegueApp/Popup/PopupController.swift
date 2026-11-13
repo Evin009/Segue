@@ -39,6 +39,7 @@ final class PopupController {
         panel.position()
         panel.makeKeyAndOrderFront(nil)
 
+        if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             // Read what's needed here; NSEvent can't cross into the main actor closure.
             let keyCode = Int(event.keyCode)

@@ -6,6 +6,8 @@ final class HotKey {
     private static var action: (@MainActor () -> Void)?
     private var hotKeyRef: EventHotKeyRef?
     private var handlerRef: EventHandlerRef?
+    /// False if another app already uses this shortcut.
+    private(set) var isRegistered = false
 
     /// Defaults to Option-Space.
     init(keyCode: Int = kVK_Space, modifiers: Int = optionKey, action: @escaping @MainActor () -> Void) {
@@ -19,6 +21,7 @@ final class HotKey {
         }, 1, &pressed, nil, &handlerRef)
 
         let id = EventHotKeyID(signature: OSType(0x5345_4755), id: 1)  // "SEGU"
-        RegisterEventHotKey(UInt32(keyCode), UInt32(modifiers), id, GetApplicationEventTarget(), 0, &hotKeyRef)
+        let status = RegisterEventHotKey(UInt32(keyCode), UInt32(modifiers), id, GetApplicationEventTarget(), 0, &hotKeyRef)
+        isRegistered = status == noErr
     }
 }

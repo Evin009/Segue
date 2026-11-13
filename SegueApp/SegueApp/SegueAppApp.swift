@@ -17,6 +17,10 @@ struct SegueAppApp: App {
 
     var body: some Scene {
         MenuBarExtra("Segue", systemImage: "arrow.turn.up.left") {
+            if !hotKey.isRegistered {
+                Text("⌥Space is used by another app")
+                Divider()
+            }
             if let problem = monitor.problem {
                 Text(problem)
                 Divider()
