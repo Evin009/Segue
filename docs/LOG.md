@@ -53,3 +53,23 @@ What was built in each phase, key decisions, and likely interview questions.
 - Why does the threshold use plain probability, not score?
 - How do you avoid leaking future data into an evaluation?
 - Why might a neural network lose to counting on one person's data?
+
+## Phase 3: Popup
+
+**Built:** silent recovery from a missed unlock signal, a feedback table (accept and dismiss counts per context, 4-hour hide), a Beta-Bernoulli bandit that scales predictor scores, and an Option-Space popup that shows the top 3 without taking focus.
+
+**Key decisions:**
+- No status shown in the menu, by user choice. A stuck "locked" state fixes itself on the next app switch instead.
+- Feedback is keyed by the current app, so "dismiss Mail in Chrome" doesn't affect Mail in Slack.
+- Trust = 2 × (accepts + 1) / (accepts + dismisses + 2): neutral at 1, so new suggestions aren't punished. Deterministic for now; Thompson sampling later if data shows it helps.
+- Trust changes ranking, not the 20% confidence check.
+- Popup is a non-activating panel, so your app keeps focus. The hotkey uses the Carbon API, which needs no Accessibility permission.
+- Esc dismisses all shown; clicking away gives no feedback.
+
+**Later:** popup look and position (issues.md, Phase 9).
+
+**Interview questions:**
+- How does the popup take keyboard input without stealing focus?
+- Why add 1 and 2 in the trust formula?
+- Why does feedback change ranking but not whether to show anything?
+- What is the trade-off between exploration (Thompson sampling) and predictability?

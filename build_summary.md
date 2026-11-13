@@ -166,3 +166,17 @@ You dismiss Mail 5 times → Mail trust 0.29 → score 0.07
 Now: Notes first, Mail second
 ```
 Trust starts at 1 (no change), so new suggestions aren't punished.
+
+### Task 4: Popup + hotkey
+
+**What:** press **⌥ Space** anywhere to open a small box with the top 3 suggestions. Your current app stays in front. 1/2/3, click, or arrows + Return open one (counts as accept). Esc closes and counts as dismissing all shown. Clicking away closes with no feedback.
+
+**Example:**
+```
+In Chrome, press ⌥ Space
+  1  Xcode
+  2  Notes
+  3  Mail
+Press 1 → Xcode opens, "Xcode after Chrome" trust goes up
+```
+Also in the menu: **Show Suggestions**.

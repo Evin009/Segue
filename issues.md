@@ -16,6 +16,11 @@ Known problems to fix later. Check this at the start of each phase.
 
 - [ ] **Failed save:** if saving to the database fails, the 1–2 visits waiting to save are lost. Fix: keep them and retry, along with the database safety work.
 
+## Phase 9: Ship
+
+- [ ] **Popup look:** restyle the popup (colors, size, icons, spacing, maybe Liquid Glass).
+- [ ] **Popup position:** choose where it appears (now: upper third of the screen with the mouse, like Spotlight). Maybe near the cursor or menu bar, or let the user choose.
+
 ## Anytime
 
 - [ ] **Leftover setting:** the project-level macOS target still says 26.4. The app's own 26.0 setting overrides it, so it has no effect.
