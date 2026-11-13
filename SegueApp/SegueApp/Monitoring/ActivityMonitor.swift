@@ -33,7 +33,9 @@ final class ActivityMonitor {
             let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
             return app?.bundleIdentifier
         } then: { monitor, appID in
-            if let appID { monitor.record { try $0.appActivated(appID, at: Self.now()) } }
+            guard let appID else { return }
+            monitor.recoverFromMissedUnlock()
+            monitor.record { try $0.appActivated(appID, at: Self.now()) }
         }
 
         let distributed = DistributedNotificationCenter.default()
@@ -55,6 +57,14 @@ final class ActivityMonitor {
         }
 
         handle(Self.sessionIsLocked() ? .lock : .wake)
+    }
+
+    /// If macOS never sent the unlock signal, Segue would stay "locked" and record nothing.
+    /// An app switch means someone is using the Mac, so check the real lock state then.
+    private func recoverFromMissedUnlock() {
+        if recorder?.isLocked == true, !Self.sessionIsLocked() {
+            handle(.unlock)
+        }
     }
 
     /// Whether Segue launched behind the lock screen or while another Mac user is active.

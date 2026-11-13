@@ -21,3 +21,6 @@ public struct BaselinePredictor: Sendable {
             .map { $0 }
     }
 }
+
+// CEN 4020 - Software Engineering Credit(s): 3
+// CIS 4930 - tools in workfoce

@@ -15,7 +15,7 @@ struct SegueAppApp: App {
                 Text(problem)
                 Divider()
             }
-            Button(monitor.isPaused ? "Resume Tracking" : "Pause Tracking") {
+            Button(monitor.isPaused ? "Start Monitoring" : "Stop Monitoring") {
                 monitor.togglePause()
             }
             Divider()

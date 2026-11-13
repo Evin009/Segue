@@ -131,3 +131,15 @@ Top-3           75.0%      55.0%    +20.0
 Coverage        90.0%     100.0%    -10.0
 ```
 (Made-up numbers.) Under 100 switches, it warns that the numbers are mostly luck.
+
+## Phase 3: Popup
+
+### Task 1: Quiet background tracking
+
+**What:** no status shown. Segue just tracks in the background. The menu has **Stop Monitoring** / **Start Monitoring**. If macOS ever forgets to say the screen unlocked, Segue fixes itself on your next app switch.
+
+**Example:**
+```
+Unlock signal lost → Segue thinks "still locked"
+You switch to Chrome → Segue checks: not locked → records again
+```

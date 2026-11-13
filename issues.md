@@ -4,7 +4,7 @@ Known problems to fix later. Check this at the start of each phase.
 
 ## Phase 3: Popup
 
-- [ ] **Stuck "locked":** if macOS never sends the unlock signal, Segue records nothing and the menu doesn't say why. Fix: show "Paused" or "Locked" in the menu.
+- [x] **Stuck "locked":** fixed silently instead of a menu label (no status shown, by choice). Any app switch while "locked" checks the real lock state and resumes if unlocked.
 
 ## Phase 4: Browsers
 
