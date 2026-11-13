@@ -143,3 +143,14 @@ Coverage        90.0%     100.0%    -10.0
 Unlock signal lost → Segue thinks "still locked"
 You switch to Chrome → Segue checks: not locked → records again
 ```
+
+### Task 2: Feedback memory
+
+**What:** remembers each accept and dismiss, per situation ("while in Chrome, Mail was suggested"). A dismissed suggestion is hidden for 4 hours in that same situation. Accepting it later un-hides it.
+
+**Example:**
+```
+In Chrome, Segue suggests Mail → you press Esc (dismiss)
+Next 4 hours in Chrome: Mail not suggested
+In Slack: Mail can still show
+```

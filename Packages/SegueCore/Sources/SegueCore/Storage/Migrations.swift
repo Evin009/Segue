@@ -29,6 +29,19 @@ enum Migrations {
                 """)
         }
 
+        migrator.registerMigration("v2: feedback") { db in
+            try db.execute(sql: """
+                CREATE TABLE feedback (
+                  prev1             TEXT    NOT NULL,
+                  next              TEXT    NOT NULL,
+                  accepts           INTEGER NOT NULL DEFAULT 0,
+                  dismisses         INTEGER NOT NULL DEFAULT 0,
+                  last_dismissed_at INTEGER,
+                  PRIMARY KEY (prev1, next)
+                );
+                """)
+        }
+
         return migrator
     }
 }

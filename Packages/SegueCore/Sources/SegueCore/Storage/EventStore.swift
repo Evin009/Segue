@@ -87,6 +87,52 @@ public final class EventStore: Sendable {
         }
     }
 
+    // MARK: - Feedback
+
+    /// How long a dismissed suggestion stays hidden in the same context.
+    public static let dismissWindowSeconds: Int64 = 4 * 3600
+
+    /// Saves that `suggested` was accepted or dismissed while you were in `after`.
+    /// Accepting also ends any recent dismissal, so it can show again right away.
+    public func recordFeedback(after prev1: String, suggested next: String, accepted: Bool, at ts: Int64) throws {
+        try database.write { db in
+            try db.execute(
+                sql: """
+                    INSERT INTO feedback (prev1, next, accepts, dismisses, last_dismissed_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT (prev1, next) DO UPDATE SET
+                      accepts = accepts + excluded.accepts,
+                      dismisses = dismisses + excluded.dismisses,
+                      last_dismissed_at = excluded.last_dismissed_at
+                    """,
+                arguments: [prev1, next, accepted ? 1 : 0, accepted ? 0 : 1, accepted ? nil : ts]
+            )
+        }
+    }
+
+    /// Accept and dismiss counts for each suggestion made while in `prev1`.
+    public func feedback(after prev1: String) throws -> [String: Feedback] {
+        try database.read { db in
+            let rows = try Row.fetchAll(
+                db, sql: "SELECT next, accepts, dismisses FROM feedback WHERE prev1 = ?", arguments: [prev1]
+            )
+            return Dictionary(uniqueKeysWithValues: rows.map {
+                ($0["next"] as String, Feedback(accepts: $0["accepts"], dismisses: $0["dismisses"]))
+            })
+        }
+    }
+
+    /// Suggestions dismissed while in `prev1` within the last 4 hours before `ts`.
+    public func recentlyDismissed(after prev1: String, at ts: Int64) throws -> Set<String> {
+        try database.read { db in
+            Set(try String.fetchAll(
+                db,
+                sql: "SELECT next FROM feedback WHERE prev1 = ? AND last_dismissed_at > ?",
+                arguments: [prev1, ts - Self.dismissWindowSeconds]
+            ))
+        }
+    }
+
     private static func recentEvents(_ db: Database, limit: Int) throws -> [CleanEvent] {
         try Row.fetchAll(db, sql: "SELECT * FROM events ORDER BY ts DESC, id DESC LIMIT ?", arguments: [limit])
             .map(event)
