@@ -92,6 +92,7 @@ Option keeps score from first tier it appears in. Remove current state and anyth
 
 - [ ] Encryption: lock database, keep key in Keychain; never overwrite a database that won't open
 - [ ] Delete controls: delete data, set retention, write privacy page
+- [ ] Insights window: show your habits, model accuracy, and recent data with delete buttons
 
 ### Phase 7: On-device vs cloud AI
 
